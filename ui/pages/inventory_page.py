@@ -3,7 +3,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import ElementClickInterceptedException, StaleElementReferenceException
 
-from pages.base_page import BasePage
+from ui.pages.base_page import BasePage
 
 
 class InventoryPage(BasePage):
@@ -31,6 +31,14 @@ class InventoryPage(BasePage):
     def get_prices(self) -> list[float]:
         prices_els = self.driver.find_elements(*self.PRICES)
         return [float(el.text.replace('$', '').strip()) for el in prices_els]
+
+    def get_product_price(self, product_id: str) -> float:
+        price_locator = (
+            By.XPATH,
+            f'//div[@class="inventory_item"][.//button[@id="add-to-cart-{product_id}" or @id="remove-{product_id}"]]//div[@class="inventory_item_price"]'
+        )
+        price_text = self.get_text(price_locator)
+        return float(price_text.replace('$', '').strip())
 
     def get_names(self) -> list[str]:
         items = self.find_elements(self.ITEM_NAMES)

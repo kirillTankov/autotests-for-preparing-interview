@@ -8,8 +8,8 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
 
-from inventory_page import InventoryPage
-from login_page import LoginPage
+from ui.pages.inventory_page import InventoryPage
+from ui.pages.login_page import LoginPage
 
 ARTIFACTS_DIR = Path("artifacts")
 SCREENSHOTS_DIR = ARTIFACTS_DIR / "screenshots"
@@ -80,8 +80,10 @@ def pytest_addoption(parser):
 def logged_user(driver):
     def _login(username="standard_user", password="secret_sauce"):
         login_page = LoginPage(driver)
+        inventory = InventoryPage(driver)
         login_page.open()
         login_page.login_as(username, password)
+        assert inventory.is_opened(), 'Страница Products не открылась после логина'
         return InventoryPage(driver)
     return _login
 

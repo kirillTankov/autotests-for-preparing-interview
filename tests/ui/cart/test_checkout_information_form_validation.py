@@ -1,7 +1,7 @@
 import pytest
 
-from pages.cart_page import CartPage
-from pages.checkout_step_one_page import CheckoutStepOne
+from ui.pages.cart_page import CartPage
+from ui.pages.checkout_step_one_page import CheckoutStepOne
 
 
 class TestCheckoutInformationFormValidation:
@@ -27,8 +27,6 @@ class TestCheckoutInformationFormValidation:
         cart = CartPage(driver)
         checkout_step_one = CheckoutStepOne(driver)
         product_id = 'sauce-labs-bolt-t-shirt'
-
-        assert inventory.is_opened(), 'Страница Products не открылась'
 
         inventory.add_to_cart(product_id)
         inventory.open_cart()

@@ -1,8 +1,5 @@
 import pytest
 
-from pages.inventory_page import InventoryPage
-from pages.login_page import LoginPage
-
 
 class TestSortPrice:
 
@@ -16,12 +13,8 @@ class TestSortPrice:
         ],
         ids=["price_low_to_high", "price_high_to_low"]
     )
-    def test_sort_price(self, driver, sort_value, reverse):
-        login = LoginPage(driver)
-        inventory = InventoryPage(driver)
-
-        login.open()
-        login.login_as("standard_user", "secret_sauce")
+    def test_sort_price(self, driver, logged_user, sort_value, reverse):
+        inventory = logged_user()
 
         inventory.sort_by(sort_value)
         prices = inventory.get_prices()
@@ -39,12 +32,8 @@ class TestSortPrice:
         ],
         ids=["name_a_to_z", "name_z_to_a"]
     )
-    def test_sort_name(self, driver, sort_value, reverse):
-        login = LoginPage(driver)
-        inventory = InventoryPage(driver)
-
-        login.open()
-        login.login_as("standard_user", "secret_sauce")
+    def test_sort_name(self, driver, logged_user, sort_value, reverse):
+        inventory = logged_user()
 
         inventory.sort_by(sort_value)
         names = inventory.get_names()

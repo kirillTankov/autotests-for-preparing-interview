@@ -1,5 +1,4 @@
-from pages.login_page import LoginPage
-from pages.inventory_page import InventoryPage
+from ui.pages.login_page import LoginPage
 
 
 class TestLoginPage:

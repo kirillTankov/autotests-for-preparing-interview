@@ -1,4 +1,4 @@
-from pages.base_page import BasePage
+from ui.pages.base_page import BasePage
 
 
 class ExamplePage(BasePage):

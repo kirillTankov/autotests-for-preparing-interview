@@ -1,6 +1,4 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from pages.example_page import ExamplePage
+from ui.pages.example_page import ExamplePage
 
 
 class TestExamplePage:
