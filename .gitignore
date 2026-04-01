@@ -3,6 +3,9 @@ __pycache__/
 .pytest_cache/
 artifacts/
 allure-results/
+allure-results-api/
+allure-results-ui/
 allure-report/
 .idea/
 .env
+*.log

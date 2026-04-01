@@ -8,6 +8,7 @@ class TestBurgerMenu:
     @allure.feature("Catalog")
     @allure.story("Burger menu")
     @allure.title("Меню открывается и закрывается")
+    @pytest.mark.ui
     @pytest.mark.catalog
     def test_burger_menu(self, driver, logged_user):
         with allure.step("Авторизоваться в системе"):

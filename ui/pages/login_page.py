@@ -3,7 +3,9 @@ from selenium.webdriver.common.by import By
 
 
 class LoginPage(BasePage):
-    URL = 'https://www.saucedemo.com/'
+    def __init__(self, driver, base_url: str, timeout: int = 10):
+        super().__init__(driver, timeout)
+        self.base_url = base_url
 
     USERNAME = (By.ID, 'user-name')
     PASSWORD = (By.ID, 'password')
@@ -11,7 +13,7 @@ class LoginPage(BasePage):
     ERROR_TEXT = (By.XPATH, '//h3[@data-test="error"]')
 
     def open(self):
-        self.driver.get(self.URL)
+        self.driver.get(self.base_url)
 
     def fill_field_username(self, username: str):
         self.type_text(self.USERNAME, username)

@@ -1,11 +1,11 @@
-import os
 from datetime import datetime
 from pathlib import Path
+import os
 
+import allure
 import pytest
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
 from ui.pages.inventory_page import InventoryPage
@@ -16,76 +16,50 @@ SCREENSHOTS_DIR = ARTIFACTS_DIR / "screenshots"
 PAGE_SOURCE_DIR = ARTIFACTS_DIR / "page_source"
 
 
-def build_chrome_options(headed: bool = False) -> ChromeOptions:
-    options = ChromeOptions()
+def get_chrome_options(headed: bool = False) -> Options:
+    options = Options()
 
-    # Stable defaults for UI automation
     options.add_argument("--disable-notifications")
     options.add_argument("--disable-popup-blocking")
-    options.add_argument("--no-default-browser-check")
     options.add_argument("--no-first-run")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--disable-features=TranslateUI")
+    options.add_argument("--no-sandbox")
 
-    # Headless by default, headed if explicitly requested
-    if not headed:
+    if headed:
+        options.add_argument("--start-maximized")
+    else:
         options.add_argument("--headless=new")
         options.add_argument("--window-size=1920,1080")
-    else:
-        options.add_argument("--start-maximized")
-
-    user_data_dir = os.getenv("CHROME_USER_DATA_DIR")
-    if user_data_dir:
-        options.add_argument(f"--user-data-dir={user_data_dir}")
 
     prefs = {
         "credentials_enable_service": False,
         "profile.password_manager_enabled": False,
-        "profile.password_manager_leak_detection": False,
-        "profile.autofill_profile_enabled": False,
-        "profile.autofill_credit_card_enabled": False,
     }
     options.add_experimental_option("prefs", prefs)
-
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option("useAutomationExtension", False)
 
     return options
 
 
-def create_chrome_driver(headed: bool = False) -> webdriver.Chrome:
-    options = build_chrome_options(headed=headed)
-
-    chromedriver_path = os.getenv("CHROMEDRIVER_PATH")
-    if chromedriver_path:
-        service = ChromeService(executable_path=chromedriver_path)
-        return webdriver.Chrome(service=service, options=options)
-
-    return webdriver.Chrome(options=options)
-
-
 def pytest_addoption(parser):
-    parser.addoption("--browser", action="store", default="chrome", help="Browser name")
-    parser.addoption("--base-url", action="store", default="https://www.saucedemo.com/", help="Base URL")
-    parser.addoption("--wait", action="store", default="10", help="Default explicit wait timeout in seconds")
+    parser.addoption(
+        "--base-url",
+        action="store",
+        default=os.getenv("BASE_URL", "https://www.saucedemo.com/"),
+        help="Базовый URL приложения",
+    )
+    parser.addoption(
+        "--wait",
+        action="store",
+        default=os.getenv("WAIT_TIMEOUT", "10"),
+        help="Таймаут ожидания в секундах",
+    )
     parser.addoption(
         "--headed",
         action="store_true",
-        default=False,
-        help="Run browser in headed mode"
+        default=os.getenv("HEADED", "false").lower() == "true",
+        help="Запускать браузер с UI",
     )
 
-@pytest.fixture
-def logged_user(driver):
-    def _login(username="standard_user", password="secret_sauce"):
-        login_page = LoginPage(driver)
-        inventory = InventoryPage(driver)
-        login_page.open()
-        login_page.login_as(username, password)
-        assert inventory.is_opened(), 'Страница Products не открылась после логина'
-        return InventoryPage(driver)
-    return _login
 
 @pytest.fixture(scope="session")
 def base_url(request) -> str:
@@ -98,21 +72,18 @@ def wait_timeout(request) -> int:
 
 
 @pytest.fixture
-def driver(request, wait_timeout):
-    browser = request.config.getoption("--browser")
+def driver(request):
     headed = request.config.getoption("--headed")
+    options = get_chrome_options(headed=headed)
 
-    if browser != "chrome":
-        raise ValueError(f"Unsupported browser: {browser}")
-
-    drv = create_chrome_driver(headed=headed)
-    drv.implicitly_wait(0)
+    driver = webdriver.Chrome(options=options)
+    driver.implicitly_wait(0)
 
     if headed:
-        drv.maximize_window()
+        driver.maximize_window()
 
-    yield drv
-    drv.quit()
+    yield driver
+    driver.quit()
 
 
 @pytest.fixture
@@ -120,33 +91,58 @@ def wait(driver, wait_timeout) -> WebDriverWait:
     return WebDriverWait(driver, wait_timeout)
 
 
+@pytest.fixture
+def logged_user(driver, base_url):
+    def _login(username="standard_user", password="secret_sauce"):
+        login_page = LoginPage(driver, base_url)
+        inventory_page = InventoryPage(driver)
+
+        login_page.open()
+        login_page.login_as(username, password)
+
+        assert inventory_page.is_opened(), "Страница Products не открылась после логина"
+        return inventory_page
+
+    return _login
+
+
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
-    rep = outcome.get_result()
+    report = outcome.get_result()
 
-    if rep.when != "call" or not rep.failed:
+    if report.when != "call" or not report.failed:
         return
 
-    drv = item.funcargs.get("driver")
-    if not drv:
+    driver = item.funcargs.get("driver")
+    if not driver:
         return
 
     SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
     PAGE_SOURCE_DIR.mkdir(parents=True, exist_ok=True)
 
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_test_name = item.name.replace("/", "_").replace("\\", "_").replace(":", "_")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    test_name = item.name.replace("/", "_").replace("\\", "_").replace(":", "_")
 
-    screenshot_path = SCREENSHOTS_DIR / f"{safe_test_name}_{ts}.png"
-    page_source_path = PAGE_SOURCE_DIR / f"{safe_test_name}_{ts}.html"
+    screenshot_path = SCREENSHOTS_DIR / f"{test_name}_{timestamp}.png"
+    page_source_path = PAGE_SOURCE_DIR / f"{test_name}_{timestamp}.html"
 
     try:
-        drv.save_screenshot(str(screenshot_path))
+        driver.save_screenshot(str(screenshot_path))
+        allure.attach.file(
+            str(screenshot_path),
+            name=f"{test_name}_screenshot",
+            attachment_type=allure.attachment_type.PNG,
+        )
     except Exception:
         pass
 
     try:
-        page_source_path.write_text(drv.page_source, encoding="utf-8")
+        page_source_path.write_text(driver.page_source, encoding="utf-8")
+        allure.attach(
+            driver.page_source,
+            name=f"{test_name}_page_source",
+            attachment_type=allure.attachment_type.HTML,
+        )
     except Exception:
         pass

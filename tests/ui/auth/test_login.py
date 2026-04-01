@@ -11,9 +11,10 @@ class TestLoginPage:
 
     @allure.story("Успешная авторизация")
     @allure.title("Пользователь может войти с валидными данными")
+    @pytest.mark.ui
     @pytest.mark.auth
-    def test_login_positive(self, driver):
-        login_page = LoginPage(driver)
+    def test_login_positive(self, driver, base_url):
+        login_page = LoginPage(driver, base_url)
         inventory_page = InventoryPage(driver)
 
         with allure.step("Открыть страницу логина"):
@@ -30,9 +31,10 @@ class TestLoginPage:
 
     @allure.story("Ошибка авторизации")
     @allure.title("Заблокированный пользователь не может войти в систему")
+    @pytest.mark.ui
     @pytest.mark.auth
-    def test_login_negative(self, driver):
-        login_page = LoginPage(driver)
+    def test_login_negative(self, driver, base_url):
+        login_page = LoginPage(driver, base_url)
 
         with allure.step("Открыть страницу логина"):
             login_page.open()

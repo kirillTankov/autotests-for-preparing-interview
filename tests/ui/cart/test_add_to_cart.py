@@ -8,6 +8,7 @@ class TestAddToCart:
     @allure.feature("Cart")
     @allure.story("Добавление товара")
     @allure.title("Товар добавляется в корзину")
+    @pytest.mark.ui
     @pytest.mark.cart
     def test_add_to_cart(self, driver, logged_user):
         product_id = 'sauce-labs-fleece-jacket'
@@ -28,6 +29,7 @@ class TestAddToCart:
     @allure.feature("Cart")
     @allure.story("Добавление нескольких товаров")
     @allure.title("Несколько товаров добавляются в корзину")
+    @pytest.mark.ui
     @pytest.mark.cart
     def test_add_multiple_products_to_cart(self, driver, logged_user):
         products = [

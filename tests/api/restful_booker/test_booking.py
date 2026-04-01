@@ -10,6 +10,7 @@ from api.clients.restful_booker.test_data.booking_data import get_booking_payloa
 @allure.feature("Restful Booker")
 @allure.story("Get booking ids")
 @allure.title("GET /booking возвращает список идентификаторов бронирований")
+@pytest.mark.api
 @pytest.mark.api_restful_booker
 def test_get_booking_ids(booking_client, created_booking):
     booking_id = created_booking
@@ -39,6 +40,7 @@ def test_get_booking_ids(booking_client, created_booking):
 @allure.feature("Restful Booker")
 @allure.story("Filter booking ids by firstname")
 @allure.title("GET /booking с фильтром firstname возвращает подходящие бронирования")
+@pytest.mark.api
 @pytest.mark.api_restful_booker
 def test_get_booking_ids_by_firstname(booking_client, created_booking):
     booking_id = created_booking
@@ -69,6 +71,7 @@ def test_get_booking_ids_by_firstname(booking_client, created_booking):
 @allure.feature("Restful Booker")
 @allure.story("Get booking by id")
 @allure.title("GET /booking/{id} возвращает бронирование по идентификатору")
+@pytest.mark.api
 @pytest.mark.api_restful_booker
 def test_get_booking_by_id(booking_client, created_booking):
     booking_id = created_booking
@@ -100,6 +103,7 @@ def test_get_booking_by_id(booking_client, created_booking):
 @allure.feature("Restful Booker")
 @allure.story("Create booking")
 @allure.title("POST /booking создает новое бронирование")
+@pytest.mark.api
 @pytest.mark.api_restful_booker
 def test_post_create_booking(booking_client):
     payload = get_booking_payload()
@@ -145,6 +149,7 @@ def test_post_create_booking(booking_client):
 @allure.feature("Restful Booker")
 @allure.story("Update booking")
 @allure.title("PUT /booking/{id} Обновить бронирование полностью")
+@pytest.mark.api
 @pytest.mark.api_restful_booker
 def test_put_update_booking(booking_client, created_booking, auth_token):
     payload = get_updated_booking_payload()
@@ -197,6 +202,7 @@ def test_put_update_booking(booking_client, created_booking, auth_token):
 @allure.feature("Restful Booker")
 @allure.story("Partial update booking")
 @allure.title("PATCH /booking/{id} Обновить бронирование частично")
+@pytest.mark.api
 @pytest.mark.api_restful_booker
 def test_patch_partial_update_booking(booking_client, created_booking, auth_token):
     booking_id = created_booking

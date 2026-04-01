@@ -1,6 +1,7 @@
 import pytest
 
 
+@pytest.mark.api
 @pytest.mark.api_dummy_json
 def test_get_all_products(products_client):
     response = products_client.get_all_products()
@@ -13,6 +14,7 @@ def test_get_all_products(products_client):
     assert isinstance(body["products"], list)
     assert len(body["products"]) > 0
 
+@pytest.mark.api
 @pytest.mark.api_dummy_json
 def test_get_product_by_id(products_client):
     response = products_client.get_products_by_id(product_id=1)
@@ -24,6 +26,7 @@ def test_get_product_by_id(products_client):
     assert body['id'] == 1
     assert 'title' in body
 
+@pytest.mark.api
 @pytest.mark.api_dummy_json
 def test_search_products(products_client):
     response = products_client.get_search_products(query='phone')
@@ -37,6 +40,7 @@ def test_search_products(products_client):
     assert 'products' in body
     assert 'title' in body['products'][0]
 
+@pytest.mark.api
 @pytest.mark.api_dummy_json
 def test_create_product(products_client):
     payload = {
@@ -53,6 +57,7 @@ def test_create_product(products_client):
     assert body['title'] == payload['title']
     assert body['price'] == payload['price']
 
+@pytest.mark.api
 @pytest.mark.api_dummy_json
 def test_update_product(products_client):
     payload = {
@@ -70,6 +75,7 @@ def test_update_product(products_client):
     assert body['title'] == payload['title']
     assert body['price'] == payload['price']
 
+@pytest.mark.api
 @pytest.mark.api_dummy_json
 def test_patch_product(products_client):
     payload = {
@@ -85,6 +91,7 @@ def test_patch_product(products_client):
     assert body["id"] == 1
     assert body["title"] == payload["title"]
 
+@pytest.mark.api
 @pytest.mark.api_dummy_json
 def test_delete_product(products_client):
     response = products_client.delete_product(product_id=1)
