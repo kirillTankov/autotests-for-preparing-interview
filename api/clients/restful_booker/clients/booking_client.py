@@ -24,6 +24,16 @@ class BookingClient(BaseClient):
             headers=headers
         )
 
+    def partial_update_booking(self, booking_id: int, payload: dict, token: str) -> Response:
+        headers = {
+            "Cookie": f"token={token}"
+        }
+        return self.patch(
+            RestfulBookerEndpoints.booking_by_id(booking_id),
+            json=payload,
+            headers=headers
+        )
+
     def delete_booking(self, booking_id: int, token: str):
         headers = {
             "Cookie": f'token={token}'

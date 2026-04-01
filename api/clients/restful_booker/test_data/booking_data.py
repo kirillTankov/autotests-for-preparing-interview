@@ -23,3 +23,9 @@ def get_updated_booking_payload() -> dict:
         },
         "additionalneeds": "Dinner"
     }
+
+def get_partial_update_booking_payload() -> dict:
+    return {
+        "firstname" : "PartialUpdateName",
+        "lastname" : "PartialUpdateLastName"
+    }
