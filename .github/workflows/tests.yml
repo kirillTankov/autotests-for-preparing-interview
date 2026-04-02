@@ -38,3 +38,32 @@ jobs:
           name: allure-results-api
           path: allure-results-api
           retention-days: 7
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install Allure CLI
+        run: |
+          curl -L -o allure.tgz https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.tgz
+          tar -zxvf allure.tgz
+          echo "$GITHUB_WORKSPACE/allure-2.29.0/bin" >> $GITHUB_PATH
+
+      - name: Check Allure version
+        run: |
+          allure --version
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          allure generate allure-results-api -o allure-report-api --clean
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-api
+          path: allure-report-api
+          retention-days: 7
