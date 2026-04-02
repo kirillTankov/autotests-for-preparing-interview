@@ -24,6 +24,8 @@ def get_chrome_options(headed: bool = False) -> Options:
     options.add_argument("--no-first-run")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
+    options.add_argument("--disable-features=PasswordManagerEnabled,PasswordLeakDetection")
+    options.add_argument("--disable-save-password-bubble")
 
     if headed:
         options.add_argument("--start-maximized")
@@ -34,6 +36,7 @@ def get_chrome_options(headed: bool = False) -> Options:
     prefs = {
         "credentials_enable_service": False,
         "profile.password_manager_enabled": False,
+        "profile.password_manager_leak_detection": False,
     }
     options.add_experimental_option("prefs", prefs)
 
