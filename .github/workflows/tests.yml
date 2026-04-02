@@ -31,7 +31,7 @@ jobs:
 
       - name: Run API tests
         run: |
-          pytest -m api --alluredir=allure-results-api
+          pytest -n auto -m api --alluredir=allure-results-api
 
       - name: Upload Allure raw results
         if: always()
@@ -89,7 +89,7 @@ jobs:
 
       - name: Run UI tests
         run: |
-          pytest -m ui --alluredir=allure-results-ui
+          pytest -n 3 -m ui --alluredir=allure-results-ui
 
       - name: Upload Allure raw results
         if: always()
