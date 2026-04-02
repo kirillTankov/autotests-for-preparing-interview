@@ -10,6 +10,9 @@ class BasePage:
     def find_visible_element(self, locator: tuple):
         return self.wait.until(EC.visibility_of_element_located(locator))
 
+    def find_presense_element(self, locator: tuple):
+        return self.wait.until(EC.presence_of_element_located(locator))
+
     def click_element(self, locator: tuple):
         self.wait.until(EC.element_to_be_clickable(locator)).click()
 
@@ -26,7 +29,7 @@ class BasePage:
         return self.find_visible_element(locator).text
 
     def get_attribute(self, locator: tuple, name: str) -> str:
-        return self.find_visible_element(locator).get_attribute(name)
+        return self.find_presense_element(locator).get_attribute(name)
 
     def wait_invisible(self, locator: tuple):
         return self.wait.until(EC.invisibility_of_element_located(locator))
