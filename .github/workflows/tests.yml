@@ -46,10 +46,11 @@ jobs:
           java-version: "17"
 
       - name: Install Allure CLI
+        if: always()
         run: |
-          curl -L -o allure.tgz https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.tgz
+          curl -L -o allure.tgz https://github.com/allure-framework/allure2/releases/download/2.38.1/allure-2.38.1.tgz
           tar -zxvf allure.tgz
-          echo "$GITHUB_WORKSPACE/allure-2.29.0/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/allure-2.38.1/bin" >> $GITHUB_PATH
 
       - name: Check Allure version
         run: |
