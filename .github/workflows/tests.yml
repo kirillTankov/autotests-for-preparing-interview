@@ -89,7 +89,7 @@ jobs:
 
       - name: Run UI tests
         run: |
-          pytest -n 3 -m ui --alluredir=allure-results-ui
+          pytest -n 2 -m ui --alluredir=allure-results-ui
 
       - name: Upload Allure raw results
         if: always()
