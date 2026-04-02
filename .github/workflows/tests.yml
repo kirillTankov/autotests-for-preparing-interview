@@ -6,7 +6,9 @@ on:
   pull_request:
     branches: [main, master, develop]
   workflow_dispatch:
-
+    schedule:
+      - cron: "10 23 * * *"
+        
 jobs:
   api-tests:
     name: Run API tests
