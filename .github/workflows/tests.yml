@@ -1,4 +1,4 @@
-name: API Tests
+name: Tests
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
 
       - name: Run API tests
         run: |
-          pytest tests/api --alluredir=allure-results-api
+          pytest -m api --alluredir=allure-results-api
 
       - name: Upload Allure raw results
         if: always()
@@ -45,17 +45,12 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install Allure 3
+      - name: Install Allure
         if: always()
         run: |
           npm install -g allure@3.3.1
 
-      - name: Check Allure 3 version
-        if: always()
-        run: |
-          npx allure --version
-
-      - name: Generate Allure 3 report
+      - name: Generate Allure report
         if: always()
         run: |
           npx allure generate allure-results-api --output allure-report-api
@@ -66,4 +61,62 @@ jobs:
         with:
           name: allure-report-api
           path: allure-report-api
+          retention-days: 7
+
+  ui-tests:
+    name: Run UI tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Run UI tests
+        run: |
+          pytest -m ui --alluredir=allure-results-ui
+
+      - name: Upload Allure raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-ui
+          path: allure-results-ui
+          retention-days: 7
+
+      - name: Set up Node.js
+        if: always()
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Allure
+        if: always()
+        run: |
+          npm install -g allure@3.3.1
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          npx allure generate allure-results-ui --output allure-report-ui
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-ui
+          path: allure-report-ui
           retention-days: 7
