@@ -15,7 +15,7 @@ class TestBurgerMenu:
             inventory = logged_user()
 
         with allure.step("Открыть меню"):
-            inventory.open_menu()
+            inventory.open_mnu()
 
         with allure.step("Проверить, что меню открыто"):
             assert inventory.is_burger_menu_open()
