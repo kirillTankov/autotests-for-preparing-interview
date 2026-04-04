@@ -15,6 +15,8 @@ concurrency:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 jobs:
   api-tests:
@@ -137,3 +139,60 @@ jobs:
           name: allure-report-ui
           path: allure-report-ui
           retention-days: 7
+
+  deploy-pages:
+    name: Publish Allure to GitHub Pages
+    if: always() && github.event_name != 'pull_request'
+    needs: [ api-tests, ui-tests ]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download API Allure report
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-report-api
+          path: site/api
+
+      - name: Download UI Allure report
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-report-ui
+          path: site/ui
+
+      - name: Create index page
+        run: |
+          cat > site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Allure Reports</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 40px; }
+              h1 { margin-bottom: 24px; }
+              ul { line-height: 2; }
+              a { font-size: 18px; text-decoration: none; }
+            </style>
+          </head>
+          <body>
+            <h1>Allure Reports</h1>
+            <ul>
+              <li><a href="./api/">API report</a></li>
+              <li><a href="./ui/">UI report</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
