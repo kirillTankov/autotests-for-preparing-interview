@@ -1,4 +1,4 @@
-from ui.pages.example_page import ExamplePage
+from ui.selenium.pages.example_page import ExamplePage
 
 
 class TestExamplePage:

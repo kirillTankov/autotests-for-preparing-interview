@@ -1,8 +1,8 @@
 import allure
 import pytest
 
-from ui.pages.cart_page import CartPage
-from ui.pages.checkout_step_one_page import CheckoutStepOne
+from ui.selenium.pages.cart_page import CartPage
+from ui.selenium.pages.checkout_step_one_page import CheckoutStepOne
 
 
 class TestCheckoutInformationFormValidation:

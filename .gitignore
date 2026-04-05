@@ -9,3 +9,8 @@ allure-report/
 .idea/
 .env
 *.log
+playwright/node_modules/
+playwright/.cache/
+playwright/test-results/
+playwright/playwright-report/
+playwright/blob-report/

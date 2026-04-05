@@ -8,8 +8,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
-from ui.pages.inventory_page import InventoryPage
-from ui.pages.login_page import LoginPage
+from ui.selenium.pages.inventory_page import InventoryPage
+from ui.selenium.pages.login_page import LoginPage
 
 ARTIFACTS_DIR = Path("artifacts")
 SCREENSHOTS_DIR = ARTIFACTS_DIR / "screenshots"
@@ -45,19 +45,19 @@ def get_chrome_options(headed: bool = False) -> Options:
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--base-url",
+        "--ui-base-url",
         action="store",
         default=os.getenv("BASE_URL", "https://www.saucedemo.com/"),
         help="Базовый URL приложения",
     )
     parser.addoption(
-        "--wait",
+        "--ui-wait",
         action="store",
         default=os.getenv("WAIT_TIMEOUT", "10"),
         help="Таймаут ожидания в секундах",
     )
     parser.addoption(
-        "--headed",
+        "--ui-headed",
         action="store_true",
         default=os.getenv("HEADED", "false").lower() == "true",
         help="Запускать браузер с UI",
@@ -66,17 +66,17 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def base_url(request) -> str:
-    return request.config.getoption("--base-url")
+    return request.config.getoption("--ui-base-url")
 
 
 @pytest.fixture(scope="session")
 def wait_timeout(request) -> int:
-    return int(request.config.getoption("--wait"))
+    return int(request.config.getoption("--ui-wait"))
 
 
 @pytest.fixture
 def driver(request):
-    headed = request.config.getoption("--headed")
+    headed = request.config.getoption("--ui-headed")
     options = get_chrome_options(headed=headed)
 
     driver = webdriver.Chrome(options=options)
@@ -107,6 +107,13 @@ def logged_user(driver, base_url):
         return inventory_page
 
     return _login
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        item.add_marker(pytest.mark.selenium)
+        if "ui" not in item.keywords:
+            item.add_marker(pytest.mark.ui)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

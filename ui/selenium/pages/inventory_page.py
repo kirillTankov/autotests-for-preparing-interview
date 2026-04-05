@@ -3,7 +3,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import ElementClickInterceptedException, StaleElementReferenceException
 
-from ui.pages.base_page import BasePage
+from ui.selenium.pages.base_page import BasePage
 
 
 class InventoryPage(BasePage):

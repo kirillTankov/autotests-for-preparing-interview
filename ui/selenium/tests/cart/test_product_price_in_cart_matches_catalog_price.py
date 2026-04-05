@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from ui.pages.cart_page import CartPage
+from ui.selenium.pages.cart_page import CartPage
 
 
 class TestProductPriceInCartMatchesCatalogPrice:

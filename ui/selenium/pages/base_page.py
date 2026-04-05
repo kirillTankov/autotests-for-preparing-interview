@@ -28,7 +28,7 @@ class BasePage:
     def get_text(self, locator: tuple) -> str:
         return self.find_visible_element(locator).text
 
-    def get_attribute(self, locator: tuple, name: str) -> str:
+    def get_attribute(self, locator: tuple, name: str) -> str | None:
         return self.find_presense_element(locator).get_attribute(name)
 
     def wait_invisible(self, locator: tuple):

@@ -1,8 +1,8 @@
 import allure
 import pytest
 
-from ui.pages.inventory_page import InventoryPage
-from ui.pages.login_page import LoginPage
+from ui.selenium.pages.inventory_page import InventoryPage
+from ui.selenium.pages.login_page import LoginPage
 
 
 @allure.epic("UI")
