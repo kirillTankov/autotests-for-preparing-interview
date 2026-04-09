@@ -96,6 +96,10 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
 
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install --with-deps chromium
+
       - name: Run UI tests
         run: |
           pytest -n 2 -m ui --alluredir=allure-results-ui
