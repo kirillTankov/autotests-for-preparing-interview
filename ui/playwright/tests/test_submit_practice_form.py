@@ -1,4 +1,9 @@
+import pytest
+
 from ui.playwright.pages.practice_form_page import PracticeFormPage
+
+
+pytestmark = [pytest.mark.ui, pytest.mark.playwright]
 
 
 def test_submit_practice_form(page):

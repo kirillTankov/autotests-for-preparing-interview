@@ -1,4 +1,8 @@
+import pytest
 from playwright.sync_api import Page, expect
+
+
+pytestmark = [pytest.mark.ui, pytest.mark.playwright]
 
 
 def test_login(page: Page):

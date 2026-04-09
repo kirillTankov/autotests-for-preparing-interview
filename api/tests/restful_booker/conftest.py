@@ -1,4 +1,4 @@
-from typing import Any, Generator
+from typing import Generator
 
 import pytest
 
@@ -19,7 +19,7 @@ def booking_client() -> BookingClient:
 
 
 @pytest.fixture()
-def auth_token(auth_client) -> str:
+def auth_token(auth_client: AuthClient) -> str:
     response = auth_client.create_token(USERNAME, PASSWORD)
 
     assert response.status_code == 200
@@ -27,7 +27,10 @@ def auth_token(auth_client) -> str:
 
 
 @pytest.fixture()
-def created_booking(booking_client, auth_token: str) -> Generator[int, None, None]:
+def created_booking(
+    booking_client: BookingClient,
+    auth_token: str,
+) -> Generator[int, None, None]:
     payload = get_booking_payload()
 
     response = booking_client.create_booking(payload=payload)
@@ -37,5 +40,6 @@ def created_booking(booking_client, auth_token: str) -> Generator[int, None, Non
 
     yield booking_id
 
-    booking_client.delete_booking(booking_id, auth_token)
+    delete_response = booking_client.delete_booking(booking_id, auth_token)
+    assert delete_response.status_code in (200, 201)
 
