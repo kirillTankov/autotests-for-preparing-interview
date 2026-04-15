@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
 .pytest_cache/
+.hypothesis/
 /artifacts/
 /logs/
 allure-results/

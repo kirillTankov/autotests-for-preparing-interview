@@ -2,9 +2,9 @@ from typing import Generator
 
 import pytest
 
-from api.clients.restful_booker.clients.booking_client import BookingClient
-from api.clients.restful_booker.test_data.auth_data import USERNAME, PASSWORD
 from api.clients.restful_booker.clients.auth_client import AuthClient
+from api.clients.restful_booker.clients.booking_client import BookingClient
+from api.clients.restful_booker.test_data.auth_data import get_auth_data
 from api.clients.restful_booker.test_data.booking_data import get_booking_payload
 
 
@@ -20,7 +20,9 @@ def booking_client() -> BookingClient:
 
 @pytest.fixture()
 def auth_token(auth_client: AuthClient) -> str:
-    response = auth_client.create_token(USERNAME, PASSWORD)
+    auth_data = get_auth_data()
+
+    response = auth_client.create_token(auth_data)
 
     assert response.status_code == 200
     return response.json()["token"]
@@ -42,4 +44,3 @@ def created_booking(
 
     delete_response = booking_client.delete_booking(booking_id, auth_token)
     assert delete_response.status_code in (200, 201)
-

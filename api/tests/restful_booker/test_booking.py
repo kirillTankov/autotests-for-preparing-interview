@@ -3,6 +3,9 @@ import json
 import allure
 import pytest
 
+from pydantic import BaseModel
+from api.clients.restful_booker.schema import BookingData
+
 from api.clients.restful_booker.test_data.booking_data import (
     get_booking_payload,
     get_partial_update_booking_payload,
@@ -12,7 +15,10 @@ from api.clients.restful_booker.test_data.booking_data import (
 pytestmark = [pytest.mark.api, pytest.mark.api_restful_booker]
 
 
-def _attach_json(name: str, payload: dict | list) -> None:
+def _attach_json(name: str, payload) -> None:
+    if isinstance(payload, BaseModel):
+        payload = payload.model_dump(mode="json", exclude_none=True)
+
     allure.attach(
         json.dumps(payload, indent=4, ensure_ascii=False),
         name=name,
@@ -20,15 +26,16 @@ def _attach_json(name: str, payload: dict | list) -> None:
     )
 
 
-def _assert_booking_fields(actual: dict, expected: dict, *, with_dates: bool = True) -> None:
-    assert actual["firstname"] == expected["firstname"]
-    assert actual["lastname"] == expected["lastname"]
-    assert actual["totalprice"] == expected["totalprice"]
-    assert actual["depositpaid"] == expected["depositpaid"]
-    assert actual["additionalneeds"] == expected["additionalneeds"]
+def _assert_booking_fields(actual: dict, expected: BookingData, *, with_dates: bool = True) -> None:
+    assert actual["firstname"] == expected.firstname
+    assert actual["lastname"] == expected.lastname
+    assert actual["totalprice"] == expected.totalprice
+    assert actual["depositpaid"] == expected.depositpaid
+    assert actual["additionalneeds"] == expected.additionalneeds
 
     if with_dates:
-        assert actual["bookingdates"] == expected["bookingdates"]
+        assert actual["bookingdates"]["checkin"] == expected.bookingdates.checkin.isoformat()
+        assert actual["bookingdates"]["checkout"] == expected.bookingdates.checkout.isoformat()
 
 
 @allure.epic("API")
@@ -36,17 +43,23 @@ def _assert_booking_fields(actual: dict, expected: dict, *, with_dates: bool = T
 @allure.story("Get booking ids")
 @allure.title("GET /booking returns booking ids")
 def test_get_booking_ids(booking_client, created_booking):
-    response = booking_client.get_booking_ids()
-    assert response.status_code == 200
+    with allure.step("Отправить запрос на получение списка booking id"):
+        response = booking_client.get_booking_ids()
 
-    body = response.json()
-    _attach_json("response_body", body)
+    with allure.step("Проверить, что код ответа равен 200"):
+        assert response.status_code == 200
 
-    assert isinstance(body, list)
-    assert body
+    with allure.step("Распарсить и прикрепить тело ответа в отчёт"):
+        body = response.json()
+        _attach_json("response_body", body)
 
-    booking_ids = [item["bookingid"] for item in body]
-    assert created_booking in booking_ids
+    with allure.step("Проверить, что ответ содержит непустой список"):
+        assert isinstance(body, list)
+        assert body
+
+    with allure.step("Проверить, что созданный booking id присутствует в ответе"):
+        booking_ids = [item["bookingid"] for item in body]
+        assert created_booking in booking_ids
 
 
 @allure.epic("API")
@@ -54,7 +67,7 @@ def test_get_booking_ids(booking_client, created_booking):
 @allure.story("Filter booking ids by firstname")
 @allure.title("GET /booking with firstname filter returns matching bookings")
 def test_get_booking_ids_by_firstname(booking_client, created_booking):
-    expected_firstname = get_booking_payload()["firstname"]
+    expected_firstname = get_booking_payload().firstname
 
     response = booking_client.get_booking_ids(firstname=expected_firstname)
     assert response.status_code == 200
@@ -144,5 +157,5 @@ def test_patch_partial_update_booking(booking_client, created_booking, auth_toke
     _attach_json("response_body", body)
 
     assert isinstance(body, dict)
-    for field, expected_value in payload.items():
+    for field, expected_value in payload.model_dump(exclude_none=True).items():
         assert body[field] == expected_value
