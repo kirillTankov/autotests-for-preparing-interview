@@ -1,5 +1,4 @@
-from playwright.sync_api import Page, expect
-
+from playwright.sync_api import Page, Locator, expect
 from ui.playwright.config.settings import Settings
 
 
@@ -14,24 +13,6 @@ class BasePage:
         url = f"{self.base_url}/{self.PATH.lstrip('/')}" if self.PATH else self.base_url
         self.page.goto(url)
 
-    def click(self, selector: str):
-        self.page.locator(selector).click()
-
-    def fill(self, selector: str, text: str):
-        self.page.locator(selector).fill(text)
-
-    def get_text(self, selector: str) -> str:
-        return self.page.locator(selector).inner_text()
-
-    def is_visible(self, selector: str) -> bool:
-        return self.page.locator(selector).is_visible()
-
-    def wait_visible(self, selector: str):
-        self.page.locator(selector).wait_for(state="visible")
-
-    def wait_hidden(self, selector: str):
-        self.page.locator(selector).wait_for(state="hidden")
-
     def should_have_title(self, title: str):
         expect(self.page).to_have_title(title)
 
@@ -43,3 +24,38 @@ class BasePage:
         )
         expect(self.page).to_have_url(expected_url)
 
+    @staticmethod
+    def should_be_visible(locator: Locator):
+        expect(locator).to_be_visible()
+
+    @staticmethod
+    def should_not_be_visible(locator: Locator):
+        expect(locator).not_to_be_visible()
+
+    @staticmethod
+    def should_be_checked(locator: Locator):
+        expect(locator).to_be_checked()
+
+    @staticmethod
+    def should_have_text(locator: Locator, text: str):
+        expect(locator).to_have_text(text)
+
+    @staticmethod
+    def should_contain_text(locator: Locator, text: str):
+        expect(locator).to_contain_text(text)
+
+    @staticmethod
+    def should_have_value(locator: Locator, value: str):
+        expect(locator).to_have_value(value)
+
+    @staticmethod
+    def should_be_enabled(locator: Locator):
+        expect(locator).to_be_enabled()
+
+    @staticmethod
+    def should_be_disabled(locator: Locator):
+        expect(locator).to_be_disabled()
+
+    @staticmethod
+    def should_have_attribute(locator: Locator, name: str, value: str):
+        expect(locator).to_have_attribute(name, value)

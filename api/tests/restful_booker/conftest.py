@@ -4,6 +4,7 @@ import pytest
 
 from api.clients.restful_booker.clients.auth_client import AuthClient
 from api.clients.restful_booker.clients.booking_client import BookingClient
+from api.clients.restful_booker.schema import AuthResponse, CreateBookingResponse
 from api.clients.restful_booker.test_data.auth_data import get_auth_data
 from api.clients.restful_booker.test_data.booking_data import get_booking_payload
 
@@ -23,9 +24,10 @@ def auth_token(auth_client: AuthClient) -> str:
     auth_data = get_auth_data()
 
     response = auth_client.create_token(auth_data)
+    parsed_body = AuthResponse.model_validate(response.json())
 
     assert response.status_code == 200
-    return response.json()["token"]
+    return parsed_body.token
 
 
 @pytest.fixture()
@@ -36,9 +38,11 @@ def created_booking(
     payload = get_booking_payload()
 
     response = booking_client.create_booking(payload=payload)
+    parsed_body = CreateBookingResponse.model_validate(response.json())
+
     assert response.status_code == 200
 
-    booking_id = response.json()["bookingid"]
+    booking_id = parsed_body.bookingid
 
     yield booking_id
 
