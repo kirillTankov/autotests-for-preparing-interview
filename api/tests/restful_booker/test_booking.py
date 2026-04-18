@@ -1,11 +1,17 @@
 import json
+from typing import TypeVar
 
 import allure
 import pytest
-
 from pydantic import BaseModel
-from api.clients.restful_booker.schema import BookingData
 
+from api.clients.restful_booker.schema import (
+    BookingData,
+    BookingIdItem,
+    BookingResponse,
+    CreateBookingResponse,
+    PartialBookingData,
+)
 from api.clients.restful_booker.test_data.booking_data import (
     get_booking_payload,
     get_partial_update_booking_payload,
@@ -13,6 +19,8 @@ from api.clients.restful_booker.test_data.booking_data import (
 )
 
 pytestmark = [pytest.mark.api, pytest.mark.api_restful_booker]
+
+ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
 def _attach_json(name: str, payload) -> None:
@@ -26,16 +34,33 @@ def _attach_json(name: str, payload) -> None:
     )
 
 
-def _assert_booking_fields(actual: dict, expected: BookingData, *, with_dates: bool = True) -> None:
-    assert actual["firstname"] == expected.firstname
-    assert actual["lastname"] == expected.lastname
-    assert actual["totalprice"] == expected.totalprice
-    assert actual["depositpaid"] == expected.depositpaid
-    assert actual["additionalneeds"] == expected.additionalneeds
+def _parse_response(response, model: type[ModelT]) -> ModelT:
+    body = response.json()
+    _attach_json("response_body", body)
+    return model.model_validate(body)
 
-    if with_dates:
-        assert actual["bookingdates"]["checkin"] == expected.bookingdates.checkin.isoformat()
-        assert actual["bookingdates"]["checkout"] == expected.bookingdates.checkout.isoformat()
+
+def _parse_response_list(response, model: type[ModelT]) -> list[ModelT]:
+    body = response.json()
+    _attach_json("response_body", body)
+    return [model.model_validate(item) for item in body]
+
+
+def _assert_booking_fields(actual: BookingResponse, expected: BookingData) -> None:
+    assert actual.firstname == expected.firstname
+    assert actual.lastname == expected.lastname
+    assert actual.totalprice == expected.totalprice
+    assert actual.depositpaid == expected.depositpaid
+    assert actual.additionalneeds == expected.additionalneeds
+    assert actual.bookingdates.checkin == expected.bookingdates.checkin
+    assert actual.bookingdates.checkout == expected.bookingdates.checkout
+
+
+def _assert_partial_booking_fields(actual: BookingResponse, expected: PartialBookingData) -> None:
+    if expected.firstname is not None:
+        assert actual.firstname == expected.firstname
+    if expected.lastname is not None:
+        assert actual.lastname == expected.lastname
 
 
 @allure.epic("API")
@@ -43,23 +68,14 @@ def _assert_booking_fields(actual: dict, expected: BookingData, *, with_dates: b
 @allure.story("Get booking ids")
 @allure.title("GET /booking returns booking ids")
 def test_get_booking_ids(booking_client, created_booking):
-    with allure.step("Отправить запрос на получение списка booking id"):
-        response = booking_client.get_booking_ids()
+    response = booking_client.get_booking_ids()
 
-    with allure.step("Проверить, что код ответа равен 200"):
-        assert response.status_code == 200
+    assert response.status_code == 200
 
-    with allure.step("Распарсить и прикрепить тело ответа в отчёт"):
-        body = response.json()
-        _attach_json("response_body", body)
+    booking_items = _parse_response_list(response, BookingIdItem)
 
-    with allure.step("Проверить, что ответ содержит непустой список"):
-        assert isinstance(body, list)
-        assert body
-
-    with allure.step("Проверить, что созданный booking id присутствует в ответе"):
-        booking_ids = [item["bookingid"] for item in body]
-        assert created_booking in booking_ids
+    assert booking_items
+    assert created_booking in [item.bookingid for item in booking_items]
 
 
 @allure.epic("API")
@@ -67,19 +83,16 @@ def test_get_booking_ids(booking_client, created_booking):
 @allure.story("Filter booking ids by firstname")
 @allure.title("GET /booking with firstname filter returns matching bookings")
 def test_get_booking_ids_by_firstname(booking_client, created_booking):
-    expected_firstname = get_booking_payload().firstname
+    firstname = get_booking_payload().firstname
 
-    response = booking_client.get_booking_ids(firstname=expected_firstname)
+    response = booking_client.get_booking_ids(firstname=firstname)
+
     assert response.status_code == 200
 
-    body = response.json()
-    _attach_json("response_body", body)
+    booking_items = _parse_response_list(response, BookingIdItem)
 
-    assert isinstance(body, list)
-    assert body
-
-    booking_ids = [item["bookingid"] for item in body]
-    assert created_booking in booking_ids
+    assert booking_items
+    assert created_booking in [item.bookingid for item in booking_items]
 
 
 @allure.epic("API")
@@ -90,13 +103,12 @@ def test_get_booking_by_id(booking_client, created_booking):
     expected_booking = get_booking_payload()
 
     response = booking_client.get_booking_by_id(created_booking)
+
     assert response.status_code == 200
 
-    body = response.json()
-    _attach_json("response_body", body)
+    actual_booking = _parse_response(response, BookingResponse)
 
-    assert isinstance(body, dict)
-    _assert_booking_fields(body, expected_booking)
+    _assert_booking_fields(actual_booking, expected_booking)
 
 
 @allure.epic("API")
@@ -108,16 +120,13 @@ def test_post_create_booking(booking_client):
     _attach_json("payload", payload)
 
     response = booking_client.create_booking(payload=payload)
+
     assert response.status_code == 200
 
-    body = response.json()
-    _attach_json("response_body", body)
+    created_booking = _parse_response(response, CreateBookingResponse)
 
-    assert "bookingid" in body
-    assert isinstance(body["bookingid"], int)
-    assert "booking" in body
-    assert isinstance(body["booking"], dict)
-    _assert_booking_fields(body["booking"], payload)
+    assert created_booking.bookingid > 0
+    _assert_booking_fields(created_booking.booking, payload)
 
 
 @allure.epic("API")
@@ -129,13 +138,12 @@ def test_put_update_booking(booking_client, created_booking, auth_token):
     _attach_json("payload", payload)
 
     response = booking_client.update_booking(created_booking, payload=payload, token=auth_token)
+
     assert response.status_code == 200
 
-    body = response.json()
-    _attach_json("response_body", body)
+    updated_booking = _parse_response(response, BookingResponse)
 
-    assert isinstance(body, dict)
-    _assert_booking_fields(body, payload)
+    _assert_booking_fields(updated_booking, payload)
 
 
 @allure.epic("API")
@@ -151,11 +159,9 @@ def test_patch_partial_update_booking(booking_client, created_booking, auth_toke
         payload=payload,
         token=auth_token,
     )
+
     assert response.status_code == 200
 
-    body = response.json()
-    _attach_json("response_body", body)
+    updated_booking = _parse_response(response, BookingResponse)
 
-    assert isinstance(body, dict)
-    for field, expected_value in payload.model_dump(exclude_none=True).items():
-        assert body[field] == expected_value
+    _assert_partial_booking_fields(updated_booking, payload)
