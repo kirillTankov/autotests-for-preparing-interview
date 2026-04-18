@@ -24,6 +24,12 @@ class WebTablesPage(BasePage):
     def row_by_email(self, email: str) -> Locator:
         return self.table_rows.filter(has_text=email)
 
+    def update_button(self, email: str) -> Locator:
+        return self.row_by_email(email).locator("span[title='Edit']")
+
+    def delete_button(self, email: str) -> Locator:
+        return self.row_by_email(email).locator("span[title='Delete']")
+
     def row_cells_by_email(self, email: str) -> Locator:
         return self.row_by_email(email).locator("td")
 
@@ -44,6 +50,31 @@ class WebTablesPage(BasePage):
         self.salary_input.fill(salary)
         self.department_input.fill(department)
         self.submit_button.click()
+
+    def update_user(
+            self,
+            current_email: str,
+            first_name: str,
+            last_name: str,
+            new_email: str,
+            age: str,
+            salary: str,
+            department: str,
+    ):
+        self.update_button(current_email).click()
+        self.first_name_input.fill(first_name)
+        self.last_name_input.fill(last_name)
+        self.email_input.fill(new_email)
+        self.age_input.fill(age)
+        self.salary_input.fill(salary)
+        self.department_input.fill(department)
+        self.submit_button.click()
+
+    def delete_user(self, email: str):
+        self.delete_button(email).click()
+
+    def should_not_have_user_in_table(self, email: str):
+        self.should_have_count(self.row_by_email(email), 0)
 
     def should_have_user_in_table(
         self,
