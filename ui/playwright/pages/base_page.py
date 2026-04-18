@@ -59,3 +59,11 @@ class BasePage:
     @staticmethod
     def should_have_attribute(locator: Locator, name: str, value: str):
         expect(locator).to_have_attribute(name, value)
+
+    @staticmethod
+    def should_have_count(locator: Locator, count: int):
+        expect(locator).to_have_count(count)
+
+    @staticmethod
+    def should_not_have_count(locator: Locator, count: int):
+        expect(locator).not_to_have_count(count)
