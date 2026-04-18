@@ -19,3 +19,4 @@ def test_submit_practice_form(page):
 
     practice_form_page.should_see_success_modal()
     practice_form_page.should_have_success_modal_title("Thanks for submitting the form")
+

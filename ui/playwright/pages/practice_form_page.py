@@ -1,45 +1,51 @@
-from playwright.sync_api import expect
+from playwright.sync_api import Page
 
 from ui.playwright.pages.base_page import BasePage
-from playwright.sync_api import expect
 
 
 class PracticeFormPage(BasePage):
     PATH = "/automation-practice-form"
-    FIRST_NAME_INPUT = "#firstName"
-    LAST_NAME_INPUT = "#lastName"
-    EMAIL_INPUT = "#userEmail"
-    MOBILE_INPUT = "#userNumber"
-    SUBMIT_BUTTON = "#submit"
-    SUCCESS_MODAL = ".modal-content"
-    SUCCESS_MODAL_TITLE = "#example-modal-sizes-title-lg"
 
-    GENDER_SELECTORS = {
-        "Male": 'label[for="gender-radio-1"]',
-        "Female": 'label[for="gender-radio-2"]',
-        "Other": 'label[for="gender-radio-3"]',
-    }
+    def __init__(self, page: Page):
+        super().__init__(page)
+
+        self.first_name_input = page.locator("#firstName")
+        self.last_name_input = page.locator("#lastName")
+        self.email_input = page.locator("#userEmail")
+        self.mobile_input = page.locator("#userNumber")
+        self.submit_button = page.get_by_role("button", name="Submit")
+        self.success_modal = page.locator(".modal-content")
+        self.success_modal_title = page.locator("#example-modal-sizes-title-lg")
+
+        self.gender_radio_buttons = {
+            "Male": page.locator("label[for='gender-radio-1']"),
+            "Female": page.locator("label[for='gender-radio-2']"),
+            "Other": page.locator("label[for='gender-radio-3']"),
+        }
 
     def fill_first_name(self, value: str):
-        self.fill(self.FIRST_NAME_INPUT, value)
+        self.first_name_input.fill(value)
 
     def fill_last_name(self, value: str):
-        self.fill(self.LAST_NAME_INPUT, value)
+        self.last_name_input.fill(value)
 
     def fill_email(self, value: str):
-        self.fill(self.EMAIL_INPUT, value)
-
-    def select_gender(self, gender: str):
-        self.click(self.GENDER_SELECTORS[gender])
+        self.email_input.fill(value)
 
     def fill_mobile(self, value: str):
-        self.fill(self.MOBILE_INPUT, value)
+        self.mobile_input.fill(value)
+
+    def select_gender(self, gender: str):
+        try:
+            self.gender_radio_buttons[gender].click()
+        except KeyError:
+            raise ValueError(f"Не поддерживаемое название \"gender\": {gender}")
 
     def submit(self):
-        self.click(self.SUBMIT_BUTTON)
+        self.submit_button.click()
 
     def should_see_success_modal(self):
-        expect(self.page.locator(self.SUCCESS_MODAL)).to_be_visible()
+        self.should_be_visible(self.success_modal)
 
     def should_have_success_modal_title(self, title: str):
-        expect(self.page.locator(self.SUCCESS_MODAL_TITLE)).to_have_text(title)
+        self.should_have_text(self.success_modal_title, title)
